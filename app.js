@@ -1,4 +1,3 @@
-
 /**
  * Module dependencies.
  */
@@ -26,29 +25,36 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // development only
 if ('development' == app.get('env')) {
-  app.use(express.errorHandler());
+    app.use(express.errorHandler());
 }
 
-/* Expondo um layout */
-app.get('/expose/:dir/:name', function(req, res) {
+app.get('/expose/:dir/:name', function(req, res){
     var dir = req.params.dir;
     var name = req.params.name;
-    var view = '/'+dir+'/'+name;
-    console.log('view: ' + view);
+    var view = dir+'/'+name;
+    console.log(view);
     res.render(view);
-});
+})
 
 app.get('/', routes.index);
 app.get('/users', user.list);
 
-/**
- * Rotas de Beer
- */
+// JSON API
 app.get('/beers', beer.list);
 app.post('/beers', beer.create);
+app.put('/beers/:id', beer.update);
+
+// RENDER VIEW
 app.get('/beers/create', beer.showCreate);
+app.get('/beers/update/:id', beer.showUpdate);
+
+
+app.get('/teste', function(req, res){
+    res.render('teste', {nome: 'Suissa'});
+})
+
 
 
 http.createServer(app).listen(app.get('port'), function(){
-  console.log('Express server listening on port ' + app.get('port'));
+    console.log('Express server listening on port ' + app.get('port'));
 });

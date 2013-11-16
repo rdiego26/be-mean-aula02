@@ -1,7 +1,3 @@
-/**
- * Created by ramos on 10/11/13.
- */
-
 var mongoose = require('mongoose');
 
 mongoose.connect('mongodb://localhost/test');
@@ -23,10 +19,10 @@ var BeerSchema = new mongoose.Schema({
     category: { type: String, default: ''},
     ingredients: [{
         name: { type: String, default: '' },
-        qnty: { type: String, default: '' }
+        qnty: { type: String, default: '' },
     }],
     created: { type: Date, default: Date.now },
-    updated: { type: Date, default: '' }
+    updated: { type: Date, default: '' },
 });
 
 var Beer = mongoose.model('Beer', BeerSchema);
@@ -56,11 +52,11 @@ Db.create = function(dados){
 Db.retrieve = function(query){
     Beer.find(query, function (err, beers) {
         if(err) {
-            console.log(err);
+            // console.log(err);
             return err;
         } else {
             // res.send(beers);
-            console.log(beers);
+            // console.log(beers);
             return beers;
             // res.end();
         }
@@ -90,98 +86,103 @@ Db.delete = function(query){
 }
 
 
-//Tornando disponíveis os métodos
-//exports.create = module.exports.create = Db.create;
-exports.create = module.exports.create = function(res, req) {
+exports.create = module.exports.create = function(req, res){
 
-    console.log('Bateu no CREATE');
-
-    var dados = req.body;
-    console.log('dados: ' + dados );
+    var dados = req.body
+    console.log('dados', dados);
 
     var beer = new Beer(dados);
 
     beer.save(function(err) {
         if(err){
             console.log(err);
-        } else {
-            console.log('Cerveja cadastrada com sucesso');
+            var msg = 'Cerveja não pode ser cadastrada!';
+            console.log(msg);
+            var query = {};
+            Beer.find(query, function (err, beers) {
+                if(err) {
+                    console.log(err);
+                    return err;
+                } else {
+                    res.render('beers/list', {cervejas: beers, msg: msg});
+                }
+            });
+        } else { // SUCESSO
+            var msg = 'Cerveja cadastrada com sucesso';
+            console.log(msg);
+            var query = {};
+            Beer.find(query, function (err, beers) {
+                if(err) {
+                    console.log(err);
+                    return err;
+                } else {
+                    res.render('beers/list', {cervejas: beers, msg: msg});
+                }
+            });
+            // res.render('beers/list');
         }
     });
-
 };
 
 exports.retrieve = module.exports.retrieve = Db.retrieve;
-exports.update = module.exports.update = Db.update;
-exports.delete = module.exports.delete = Db.delete;
-exports.list = module.exports.list = function(req, res) {
-    var query = {};
 
+exports.update = module.exports.update = function(req, res){
+    var id = req.params.id;
+    var query = {_id: id};
+    var dados = req.body;
+
+    console.log('update', dados, query);
+    Beer.update(query, dados, function(err, beer) {
+        if(err) {
+            console.log(err);
+
+        } else {
+            var query = {};
+            var msg = 'Cerveja alterado com sucesso';
+            console.log(msg, beer);
+            Beer.find(query, function (err, beers) {
+                if(err) {
+                    console.log(err);
+                    return err;
+                } else {
+                    res.render('beers/list', {cervejas: beers, msg: msg});
+                }
+            });
+        }
+    });
+};
+
+exports.delete = module.exports.delete = Db.delete;
+
+exports.list = module.exports.list = function(req, res){
+
+    var query = {};
     Beer.find(query, function (err, beers) {
         if(err) {
             console.log(err);
+            return err;
         } else {
-            // res.send(beers);
-            console.log(beers);
-            res.render('beer/list', {cervejas: beers});
-            // res.end();
+            res.render('beers/list', {cervejas: beers});
         }
     });
 
 }
 
-exports.showCreate = function(req, res) {
-    res.render('beer/form');;
+exports.showCreate = function(req, res){
+    res.render('beers/form');
 }
 
+exports.showUpdate = module.exports.showUpdate = function(req, res){
+    var id = req.params.id;
 
+    var query = {_id: id};
 
-
-//INSERT
-/*
-beer.save(function(err) {
-    if(err){
-        console.log(err);
-    } else {
-        console.log('Cerveja cadastrada com sucesso');
-    }
-});
-*/
-
-//BUSCA
-/*
-Beer.find(function (err, beers) {
-    if(err) {
-        console.log(err);
-    } else {
-        console.log(beers);
-        //res.send(beers)
-        //res.end();
-    }
-});
-*/
-
-//UPDATE
-/*
-var id = '527fde85c803e776320002002';
-var _data = {name: 'Baden Baden'};
-Beer.update({_id: id}, _data    , function(err, beer) {
-    if(err) {
-        console.log(err);
-    } else {
-        console.log('Cerveja atualizada com sucesso');
-    }
-});
-*/
-
-//REMOVE
-/*
-var id = '527fddd8897df02132000002';
-Beer.remove({_id: id}, function(err) {
-    if(err) {
-        console.log(err);
-    } else {
-        console.log('Cerveja deletada com sucesso!');
-    }
-});
-*/
+    Beer.findOne(query, function (err, beers) {
+        if(err) {
+            console.log(err);
+            return err;
+        } else {
+            res.render('beers/form_update', {cerveja: beers});
+        }
+    });
+};
